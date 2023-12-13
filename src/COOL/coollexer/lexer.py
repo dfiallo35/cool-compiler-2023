@@ -8,7 +8,6 @@ from COOL.tokens import Token
 from COOL.error import Error
 
 
-# TODO: INT, BOOL and others are types?
 class CoolLexer(Lexer):
     def __init__(self):
         super().__init__()
@@ -33,7 +32,6 @@ class CoolLexer(Lexer):
         "class": "CLASS", "inherits": "INHERITS", "if": "IF", "then": "THEN", "else": "ELSE", "fi": "FI", "while": "WHILE", "loop": "LOOP", "pool": "POOL", "let": "LET", "in": "IN", "case": "CASE", "of": "OF", "esac": "ESAC", "new": "NEW", "isvoid": "ISVOID",
     }
 
-    # Comments
     ignore = " \t"
     ignore_comment = r'--.*'
     

@@ -40,12 +40,9 @@ from COOL.nodes.expr import New
 from COOL.nodes.expr import Isvoid
 from COOL.nodes.expr import Dispatch
 from COOL.nodes.expr import Case_expr
-# from COOL.nodes.expr import Self
 
 
-# TODO: fix return clases
 # TODO: fix and check precedence
-# TODO: set the column to the ast
 class CoolParser(Parser):
     tokens = CoolLexer.tokens
     # debugfile = 'parser.out'
@@ -68,6 +65,14 @@ class CoolParser(Parser):
        ('left', '.'),
     )
 
+    def _get_column_from_production(self, p: YaccProduction):
+        column = {
+            name[0]: token.column
+            for name, token in zip(p._namemap.items(), p._slice)
+            if isinstance(token, Token)
+        }              
+        return column
+
     @_('program')
     def start(self, p: YaccProduction):
         return Program(classes=p.program)
@@ -84,7 +89,7 @@ class CoolParser(Parser):
     def classdef(self, p: YaccProduction):
         return Class(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             type=p.TYPE,
             features=p.features
         )
@@ -93,7 +98,7 @@ class CoolParser(Parser):
     def classdef(self, p: YaccProduction):
         return Class(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             features=p.features,
             type=p.TYPE0,
             inherits=p.TYPE1
@@ -111,7 +116,7 @@ class CoolParser(Parser):
     def feature(self, p: YaccProduction):
         return AttributeInicialization(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE,
             expr=p.expr
@@ -121,7 +126,7 @@ class CoolParser(Parser):
     def feature(self, p: YaccProduction):
         return AttributeDeclaration(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE
         )
@@ -130,7 +135,7 @@ class CoolParser(Parser):
     def feature(self, p: YaccProduction):
         return Method(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE,
             formals=p.formals,
@@ -141,7 +146,7 @@ class CoolParser(Parser):
     def feature(self, p: YaccProduction):
         return Method(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE,
             formals=[],
@@ -160,7 +165,7 @@ class CoolParser(Parser):
     def formal(self, p: YaccProduction):
         return Formal(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE
         )
@@ -169,7 +174,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return New(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             type=p.TYPE
         )
     
@@ -185,7 +190,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Assign(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             expr=p.expr
         )
@@ -194,7 +199,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Dispatch(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr,
             id=p.ID,
             exprs=p.exprs
@@ -204,7 +209,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Dispatch(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr,
             id=p.ID,
             exprs=[]
@@ -214,7 +219,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Dispatch(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr,
             id=p.ID,
             type=p.TYPE,
@@ -225,7 +230,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Dispatch(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr,
             id=p.ID,
             type=p.TYPE,
@@ -236,7 +241,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return ExecuteMethod(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             exprs=p.exprs
         )
@@ -245,7 +250,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return ExecuteMethod(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             exprs=[]
         )
@@ -254,7 +259,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return If(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             if_expr=p.expr0,
             then_expr=p.expr1,
             else_expr=p.expr2
@@ -264,14 +269,17 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return While(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             while_expr=p.expr0,
             loop_expr=p.expr1
         )
 
     @_('"{" nested_expr "}"')
     def expr(self, p: YaccProduction):
-        return CodeBlock(p.lineno,0,p.nested_expr)
+        return CodeBlock(
+            line=p.lineno,
+            column=self._get_column_from_production(p),
+            exprs=p.nested_expr)
 
     @_('expr ";" nested_expr')
     def nested_expr(self, p: YaccProduction):
@@ -285,7 +293,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Let(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             let_list=p.let_list,
             expr=p.expr
         )
@@ -302,7 +310,7 @@ class CoolParser(Parser):
     def let_expr(self, p: YaccProduction):
         return Initialization(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE,
             expr=p.expr
@@ -312,7 +320,7 @@ class CoolParser(Parser):
     def let_expr(self, p: YaccProduction):
         return Declaration(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE
         )
@@ -321,7 +329,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Case(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr,
             cases=p.cases
         )   
@@ -338,7 +346,7 @@ class CoolParser(Parser):
     def case(self, p: YaccProduction):
         return Case_expr(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             id=p.ID,
             type=p.TYPE,
             expr=p.expr
@@ -348,7 +356,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Isvoid(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr
         )
 
@@ -356,7 +364,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Add(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr1=p.expr0,
             expr2=p.expr1
         )
@@ -365,7 +373,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Sub(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr1=p.expr0,
             expr2=p.expr1
         )
@@ -374,7 +382,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Times(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr1=p.expr0,
             expr2=p.expr1
         )
@@ -383,7 +391,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Div(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr1=p.expr0,
             expr2=p.expr1
         )
@@ -392,7 +400,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Less(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr1=p.expr0,
             expr2=p.expr1
         )
@@ -401,7 +409,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return LessEqual(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr1=p.expr0,
             expr2=p.expr1
         )
@@ -410,7 +418,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Equal(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr1=p.expr0,
             expr2=p.expr1
         )
@@ -419,7 +427,7 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Not(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr,
         )
     
@@ -427,17 +435,17 @@ class CoolParser(Parser):
     def expr(self, p: YaccProduction):
         return Bitwise(
             line=p.lineno,
-            column=0,
+            column=self._get_column_from_production(p),
             expr=p.expr,
         )
 
     @_('NUMBER')
     def expr(self, p: YaccProduction):
-        return Interger(line=p.lineno, column=0, value=p.NUMBER)
+        return Interger(line=p.lineno, column=self._get_column_from_production(p), value=p.NUMBER)
     
     @_('STRING')
     def expr(self, p: YaccProduction):
-        return String(line=p.lineno, column=0, value=p.STRING)
+        return String(line=p.lineno, column=self._get_column_from_production(p), value=p.STRING)
     
     @_('"(" expr ")"')
     def expr(self, p: YaccProduction):
@@ -445,19 +453,15 @@ class CoolParser(Parser):
     
     @_('ID')
     def expr(self, p: YaccProduction):
-        return GetVariable(line=p.lineno, column=0, id=p.ID)
-
-    # @_('SELF')
-    # def expr(s, p: YaccProduction):
-    #     return Self(line=p.lineno, column=0)
+        return GetVariable(line=p.lineno, column=self._get_column_from_production(p), id=p.ID)
     
     @_('TRUE')
     def expr(self, p: YaccProduction):
-        return Boolean(line=p.lineno, column=0, value=True)
+        return Boolean(line=p.lineno, column=self._get_column_from_production(p), value=True)
 
     @_('FALSE')
     def expr(self, p: YaccProduction):
-        return Boolean(line=p.lineno, column=0, value=False)
+        return Boolean(line=p.lineno, column=self._get_column_from_production(p), value=False)
 
     def error(self, p: Token):
         rename = CoolLexer.rename
@@ -492,3 +496,5 @@ class CoolParser(Parser):
     
     def parse(self, tokens: List[Token]):
         return super().parse((t for t in tokens)), self.errors
+
+

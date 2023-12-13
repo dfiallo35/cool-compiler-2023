@@ -1,5 +1,4 @@
 from typing import List
-from typing import Tuple
 
 from COOL.codegen.mips_visitor import MipsVisitor
 from COOL.semantic.visitor import Visitor_Program
@@ -10,12 +9,11 @@ from COOL.nodes.feature import Method
 from COOL.nodes.feature import Attribute
 
 
-# TODO: data and text can be a list?
 class Class(Node):
     def __init__(
         self,
         line: int,
-        column: int,
+        column: dict,
         features: List[Method | Attribute],
         type: str,
         inherits: str = None
@@ -28,7 +26,7 @@ class Class(Node):
         self.inherits_instance: Class = None
         super().__init__(line,column)
     
-    def codegen(self, mips_visitor: MipsVisitor) -> Tuple[List[str], List[str]]:
+    def codegen(self, mips_visitor: MipsVisitor):
         mips_visitor.visit_class(self)
         for attribute in self.attributes:
             attribute.codegen(mips_visitor)
