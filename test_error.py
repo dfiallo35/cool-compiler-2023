@@ -62,17 +62,23 @@ def test_codegen(cls, out, inp):
 
 if __name__ == "__main__":
     # Testing lexer, parser and semantic
-    folder = "./tests/semantic/"
-    folder = "./tests/lauren/progress/now/"
-    # folder = "./tests/lauren/working_on/"
-    folder = "./tests/lauren/passed/"
-    # folder = "./tests/lauren/yet/"
-    # folder = "./tests/lexer/"
+    # folder = "./tests/semantic/"
+    folder = "./tests/lauren/now/"
 
     files = sorted([os.path.join(folder, f) for f in os.listdir(folder)])
     cls = [f for f in files if f.endswith(".cl")]
     out = [f[:-3] + "_error.txt" for f in cls]
     test_errors(cls, out)
+
+
+    # Testing codegen
+    # folder = "./tests/codegen/"
+    # folder = "./tests/lauren/now/"
+    # files = sorted([os.path.join(folder, f) for f in os.listdir(folder)])
+    # cls = [f for f in files if f.endswith(".cl")]
+    # out = [f[:-3] + "_output.txt" for f in cls]
+    # inp = [f[:-3] + "_input.txt" for f in cls]
+    # test_codegen(cls, out, inp)
 
     # Testing codegen
     # folder = "./tests/codegen/"

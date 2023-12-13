@@ -233,9 +233,14 @@ class Visitor_Class:
             self.errors.append(Error.error(node.line,node.column,'TypeError',f'Expression type {static_type.type} does not conform to declared static dispatch type {disp_type.type}.'))
             return None
         
-        node.expr = disp_type.type
-        node.type = None
-        node.check(self)
+        # node.expr = disp_type.type
+        # node.type = None
+        # return node.check(self)
+        import copy
+        copy_node = copy.deepcopy(node)
+        copy_node.expr = disp_type.type
+        copy_node.type = None
+        return copy_node.check(self)
 
 
     def visit_dispatch_expr(self,node):
